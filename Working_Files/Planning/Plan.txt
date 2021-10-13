@@ -1,0 +1,10 @@
+4 Total Locations (3 More)
+4 Total Platforms (3 More)
+
+N Total Beatmaps
+
+Figure out how to communicate stands position better
+Communicate crowd mood better
+Communicate stands state better
+
+Held Notes

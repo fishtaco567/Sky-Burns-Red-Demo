@@ -1,0 +1,1 @@
+Aseprite VerticalBar.aseprite --sheet VerticalBar.png -b --sheet-pack
