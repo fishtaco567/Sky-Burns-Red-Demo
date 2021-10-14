@@ -28,6 +28,15 @@ public class Crowd : MonoBehaviour {
 
     protected int forceNum;
 
+    [SerializeField]
+    protected SpriteRenderer indicator;
+    [SerializeField]
+    protected Transform indicatorBase;
+    [SerializeField]
+    protected float indicatorSize;
+    [SerializeField]
+    protected Sprite[] indicatorSprites;
+
     public void StartNewSong() {
         SimulatorManager.Instance.currentSim.StartForce(0);
         mood = 0;
@@ -42,6 +51,11 @@ public class Crowd : MonoBehaviour {
         var shakeyshake = (Mathf.PerlinNoise(0.1594920421572589f, Time.time * shakeTimescale) - 0.5f) * currentShake * shakeScale;
         SimulatorManager.Instance.currentSim.UpdateForce(forceNum, shakeyshake);
         SimulatorManager.Instance.currentSim.OnDamage(currentStageDamagePerSecond);
+
+        indicator.transform.position = Vector3.Lerp(indicator.transform.position,
+            new Vector3(indicatorBase.position.x, indicatorBase.position.y - indicatorSize / 2 + indicatorSize * (1 - mood), indicator.transform.position.z),
+            3f * Time.deltaTime);
+        indicator.sprite = indicatorSprites[Mathf.Clamp(Mathf.FloorToInt(mood * indicatorSprites.Length), 0, indicatorSprites.Length - 1)];
     }
 
     public void EndSong() {

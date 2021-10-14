@@ -148,6 +148,15 @@ public class SingleArmSim : ISimulator {
         foreach(var leg in legs) {
             leg.transform.rotation = Quaternion.Euler(0, 0, -theta * Mathf.Rad2Deg);
         }
+        foreach(var ind in indicators) {
+            ind.transform.position = new Vector3(transform.position.x + Mathf.Sin(theta * amp) * length, ind.transform.position.y, ind.transform.position.z);
+        }
+
+        repairIndicator.transform.position = Vector3.Lerp(repairIndicator.transform.position, 
+            new Vector3(repairIndicatorBase.position.x,
+            repairIndicatorBase.position.y - repairIndicatorSize / 2 + repairIndicatorSize * (initialSpring / 62f),
+            repairIndicator.transform.position.z),
+            3f * Time.deltaTime);
 
         if((theta <= (-70 * Mathf.Deg2Rad) || theta >= (70 * Mathf.Deg2Rad)) && BeatmapController.Instance.songIsRunning) {
             FMODUnity.RuntimeManager.PlayOneShot(crashEvent);

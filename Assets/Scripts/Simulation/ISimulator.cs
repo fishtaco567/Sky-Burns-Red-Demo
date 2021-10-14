@@ -9,6 +9,16 @@ public abstract class ISimulator : MonoBehaviour {
     protected List<(float impulse, float time)> smoothedImpulses;
     protected Dictionary<int, float> forces;
 
+    [SerializeField]
+    protected GameObject[] indicators;
+
+    [SerializeField]
+    protected GameObject repairIndicator;
+    [SerializeField]
+    protected Transform repairIndicatorBase;
+    [SerializeField]
+    protected float repairIndicatorSize;
+
     public abstract void SimulateTick(float time);
 
     protected void Awake() {
