@@ -75,4 +75,8 @@ public abstract class ISimulator : MonoBehaviour {
     
     }
 
+    public virtual void SetRepair(float i) {
+        
+    }
+
 }

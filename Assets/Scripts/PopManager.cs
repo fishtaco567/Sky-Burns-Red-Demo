@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 public class PopManager : Singleton<PopManager> {
 
@@ -24,6 +24,9 @@ public class PopManager : Singleton<PopManager> {
     protected GameObject boo;
     [SerializeField]
     protected GameObject heart;
+
+    [SerializeField]
+    protected Dictionary<string, GameObject> pops;
 
     [SerializeField]
     protected Transform popAnchorLeft;
@@ -84,6 +87,19 @@ public class PopManager : Singleton<PopManager> {
         inst.transform.position = loc;
         var comp = inst.GetComponent<PopSim>();
         comp.velocity = new Vector3((Random.value < 0.5f ? -1 : 1) * Random.Range(minVel.x, maxVel.x), Random.Range(minVel.y, maxVel.y), 0);
+    }
+
+    public void DoPop(string type, float x, float y, float xVel, float yVel) {
+        if(pops.TryGetValue(type, out var prefab)) {
+            var inst = ObjectPool.Instance.GetObject(prefab);
+            inst.transform.position = new Vector3(x, y, -1.1f);
+            var comp = inst.GetComponent<PopSim>();
+            comp.velocity = new Vector3(xVel, yVel, 0);
+        }
+    }
+
+    public bool HasPop(string type) {
+        return pops.ContainsKey(type);
     }
 
 }

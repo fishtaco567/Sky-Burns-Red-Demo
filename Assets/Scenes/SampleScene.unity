@@ -449,6 +449,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 982818eb22160164994b75954ffc0155, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes:
+    - Name: beatObjects
+      Entry: 6
+      Data: 
+    - Name: bars
+      Entry: 6
+      Data: 
   sixteenthLine: {fileID: 8079142139977987477, guid: 923642dea95c0f449873abb254a22777,
     type: 3}
   beatLine: {fileID: 3806910358669456511, guid: 917bc3fa0b8e5dd428c84d06f306a2ce,
@@ -1296,6 +1311,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc8a0aeb971533f4e893dddae1a0febb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes: []
   beatmapSelectPrefab: {fileID: 9024563057528432921, guid: 0bbeca20d5c823e46b3b80ae9afbf3ca,
     type: 3}
   beatmapSelectRoot: {fileID: 234047914}
@@ -1653,6 +1677,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbaa58755d1fba34b81d2c4c8e9df3b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes: []
   mainMenuRoots:
   - {fileID: 1568777955}
   - {fileID: 156826562}
@@ -5313,6 +5346,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6622bfe070755c44abccefc2d82cac17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes: []
   sixteenthLine: {fileID: 8079142139977987477, guid: 923642dea95c0f449873abb254a22777,
     type: 3}
   beatLine: {fileID: 3806910358669456511, guid: 917bc3fa0b8e5dd428c84d06f306a2ce,
@@ -5398,6 +5440,165 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dcd78d0ef08ff944baf82ed8f49d152e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects:
+    - {fileID: 2266256535448699238, guid: 47d11649ac4097b4e96cb0a9fb18920a, type: 3}
+    - {fileID: 3905279413078928394, guid: c8f28977b85b17f468b625836483d384, type: 3}
+    - {fileID: 5379474574086972708, guid: 884dcb1241571f14cb3a9f2d9a83cad8, type: 3}
+    - {fileID: 1103412414567711615, guid: e84c9267bf3e8194d82ab49557537d8c, type: 3}
+    - {fileID: 6980495765782833463, guid: e7fd38adaa8af0d4a8336f5a30dd7463, type: 3}
+    - {fileID: 2082233276692749879, guid: 3eb56e3ec13f6f042a6194c7bd5ddea2, type: 3}
+    - {fileID: 3802301913300034997, guid: 56b06fa16570f404d856230c37f062a1, type: 3}
+    - {fileID: 5801489015404246189, guid: 5744de0408457714bb584bed4fa31af5, type: 3}
+    - {fileID: 5326750822341585036, guid: 144c1bd826349814fba909047c988a98, type: 3}
+    - {fileID: 5669454444302208965, guid: 581803b56d1b30d44a3e2b4da52614ea, type: 3}
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes:
+    - Name: pops
+      Entry: 7
+      Data: 0|System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[UnityEngine.GameObject,
+        UnityEngine.CoreModule]], mscorlib
+    - Name: comparer
+      Entry: 7
+      Data: 1|System.Collections.Generic.GenericEqualityComparer`1[[System.String,
+        mscorlib]], mscorlib
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 12
+      Data: 10
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: Boo
+    - Name: $v
+      Entry: 10
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: Good
+    - Name: $v
+      Entry: 10
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: GoodSmall
+    - Name: $v
+      Entry: 10
+      Data: 2
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: Heart
+    - Name: $v
+      Entry: 10
+      Data: 3
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: Nope
+    - Name: $v
+      Entry: 10
+      Data: 4
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: NopeSmall
+    - Name: $v
+      Entry: 10
+      Data: 5
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: Ok
+    - Name: $v
+      Entry: 10
+      Data: 6
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: OkSmall
+    - Name: $v
+      Entry: 10
+      Data: 7
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: Perf
+    - Name: $v
+      Entry: 10
+      Data: 8
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: PerSmall
+    - Name: $v
+      Entry: 10
+      Data: 9
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
   largePerf: {fileID: 5326750822341585036, guid: 144c1bd826349814fba909047c988a98,
     type: 3}
   smallPerf: {fileID: 5669454444302208965, guid: 581803b56d1b30d44a3e2b4da52614ea,
@@ -5452,6 +5653,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 579dd303e33ec0047b999a5c6f8e0a0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes: []
   impulse: 35
   impulseTime: 0.25
   currentBeatmap:
@@ -5579,7 +5789,7 @@ MonoBehaviour:
   shakeOnBad: 1.5
   stageDamageEasingFactor: 0.1
   shakeEasingFactor: 0.1
-  shakeTimescale: 3
+  shakeTimescale: 1
   shakeScale: 1500
   indicator: {fileID: 1821497953}
   indicatorBase: {fileID: 1110764290}
@@ -13756,6 +13966,7 @@ Transform:
   - {fileID: 1922580933}
   - {fileID: 617158302}
   - {fileID: 235816160}
+  - {fileID: 1014730373}
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -14042,6 +14253,58 @@ Transform:
   m_Father: {fileID: 2066598815}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1014730372
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1014730373}
+  - component: {fileID: 1014730374}
+  m_Layer: 0
+  m_Name: SkyEventManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1014730373
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1014730372}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1000299052}
+  m_RootOrder: 7
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1014730374
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1014730372}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28aac13928e83c343bd6346749189765, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes: []
 --- !u!1 &1045914824
 GameObject:
   m_ObjectHideFlags: 0
@@ -14071,6 +14334,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ceb6b147e9d7f6b40a0f8fdac28509f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes: []
   currentSim: {fileID: 2144736398}
 --- !u!4 &1045914826
 Transform:
@@ -15871,6 +16143,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5fb883501a10c8b449f04289bc520761, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes: []
   perf: {fileID: 419875947}
   good: {fileID: 1159207241}
   ok: {fileID: 1825981516}
@@ -26434,6 +26715,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbc0915b1d5a89548b98144baa3a74fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes:
+    - Name: pools
+      Entry: 6
+      Data: 
   poolables: []
 --- !u!4 &1922580933
 Transform:
@@ -26932,6 +27225,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ece217832fdfff469ad93dabe16a470, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes: []
   text: {fileID: 470615357}
 --- !u!1 &2014959097
 GameObject:

@@ -238,4 +238,38 @@ public class SingleArmSim : ISimulator {
         }
     }
 
+    public override void SetRepair(float i) {
+        base.SetRepair(i);
+
+        initialSpring = i;
+        initialSpring = Mathf.Clamp(initialSpring, 0, 62);
+
+        if(numBreaks == 2 && initialSpring > 25) {
+            numBreaks--;
+            FMODUnity.RuntimeManager.PlayOneShot(breakEvent);
+
+            foreach(var b in braces) {
+                b.SetStage(2);
+            }
+        }
+
+        if(numBreaks == 1 && initialSpring > 35) {
+            numBreaks--;
+            FMODUnity.RuntimeManager.PlayOneShot(breakEvent);
+
+            foreach(var b in braces) {
+                b.SetStage(1);
+            }
+        }
+
+        if(numBreaks == 0 && initialSpring > 45) {
+            numBreaks--;
+            FMODUnity.RuntimeManager.PlayOneShot(breakEvent);
+
+            foreach(var b in braces) {
+                b.SetStage(0);
+            }
+        }
+    }
+
 }

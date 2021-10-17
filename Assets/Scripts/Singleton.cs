@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using Sirenix.OdinInspector;
 
 /// <summary>
 /// Be aware this will not prevent a non singleton constructor
@@ -7,7 +8,7 @@
 /// 
 /// As a note, this is made as MonoBehaviour because we need Coroutines.
 /// </summary>
-public class Singleton<T> : MonoBehaviour where T : MonoBehaviour {
+public class Singleton<T> : SerializedMonoBehaviour where T : SerializedMonoBehaviour {
     private static T _instance;
 
     private static object _lock = new object();
