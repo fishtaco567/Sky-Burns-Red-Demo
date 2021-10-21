@@ -18,8 +18,15 @@ public class SkyEventManager : Singleton<SkyEventManager> {
         activePrograms = new List<SkyEventProgram>();
 
         gameEvents.Add("SpawnPop", SpawnPop);
+        gameEvents.Add("SpawnPopLeft", SpawnPopLeft);
+        gameEvents.Add("SpawnPopRight", SpawnPopRight);
         gameEvents.Add("SetStandRepair", SetStandRepair);
+        gameEvents.Add("AddStandForce", AddStandForce);
         gameEvents.Add("AddStandRepair", AddStandRepair);
+        gameEvents.Add("SetCrowdMood", SetCrowdMood);
+        gameEvents.Add("AddCrowdMood", AddCrowdMood);
+
+        gameFunctions.Add("Random", Random);
     }
 
     public SkyEventProgram CreateProgram(string s) {
@@ -53,7 +60,24 @@ public class SkyEventManager : Singleton<SkyEventManager> {
 
     #region Variables and Functions
     public void UpdateVariables() {
-    
+        gameVariables["standRepair"] = SimulatorManager.Instance.currentSim.GetRepair();
+        gameVariables["standAngle"] = SimulatorManager.Instance.currentSim.GetAngle();
+        gameVariables["crowdMood"] = 1 - BeatmapController.Instance.crowd.mood;
+        gameVariables["perfHits"] = BeatmapController.Instance.numPerfect;
+        gameVariables["goodHits"] = BeatmapController.Instance.numGood;
+        gameVariables["okHits"] = BeatmapController.Instance.numOk;
+        gameVariables["missedHits"] = BeatmapController.Instance.numMissed;
+        gameVariables["totalHits"] = BeatmapController.Instance.numHit;
+        gameVariables["currentStreak"] = BeatmapController.Instance.currentStreak;
+        gameVariables["maxStreak"] = BeatmapController.Instance.maxStreak;
+        gameVariables["maxAngle"] = BeatmapController.Instance.maxAngle;
+        gameVariables["songTime"] = BeatmapController.Instance.currentSongTime;
+    }
+
+    protected float Random(FunctionArgs args) {
+        var resolved = EvaluateArgs<float, float>("Random", args);
+
+        return UnityEngine.Random.Range(resolved.Item1, resolved.Item2);
     }
 
     protected void SpawnPop(FunctionArgs args) {
@@ -63,6 +87,26 @@ public class SkyEventManager : Singleton<SkyEventManager> {
             LogError(evaledArgs.Item1 + " pop does not exist");
         }
         PopManager.Instance.DoPop(evaledArgs.Item1, evaledArgs.Item2, evaledArgs.Item3, evaledArgs.Item4, evaledArgs.Item5);
+        args.Result = true;
+    }
+
+    protected void SpawnPopLeft(FunctionArgs args) {
+        var evaledArgs = EvaluateArgs<string, float, float>("DoPopLeft", args);
+
+        if(!PopManager.Instance.HasPop(evaledArgs.Item1)) {
+            LogError(evaledArgs.Item1 + " pop does not exist");
+        }
+        PopManager.Instance.DoPopSide(evaledArgs.Item1, evaledArgs.Item2, evaledArgs.Item3, false);
+        args.Result = true;
+    }
+
+    protected void SpawnPopRight(FunctionArgs args) {
+        var evaledArgs = EvaluateArgs<string, float, float>("DoPopRight", args);
+
+        if(!PopManager.Instance.HasPop(evaledArgs.Item1)) {
+            LogError(evaledArgs.Item1 + " pop does not exist");
+        }
+        PopManager.Instance.DoPopSide(evaledArgs.Item1, evaledArgs.Item2, evaledArgs.Item3, true);
         args.Result = true;
     }
 
@@ -78,6 +122,25 @@ public class SkyEventManager : Singleton<SkyEventManager> {
 
         SimulatorManager.Instance.currentSim.Repair(evaledArgs);
         args.Result = true;
+    }
+
+    protected void AddStandForce(FunctionArgs args) {
+        var resolved = EvaluateArgs<float, float>("AddStandForce", args);
+
+        SimulatorManager.Instance.currentSim.ApplySmoothedImpulse(resolved.Item1, resolved.Item2);
+    }
+
+    protected void SetCrowdMood(FunctionArgs args) {
+        var resolved = EvaluateArgs<float>("SetCrowdMood", args);
+
+        BeatmapController.Instance.crowd.mood = 1 - Mathf.Clamp01(resolved);
+    }
+
+    protected void AddCrowdMood(FunctionArgs args) {
+        var resolved = EvaluateArgs<float>("AddCrowdMood", args);
+
+        var newMood = BeatmapController.Instance.crowd.mood + (1 - resolved);
+        BeatmapController.Instance.crowd.mood = Mathf.Clamp01(newMood);
     }
 
     #region argumentresolvers

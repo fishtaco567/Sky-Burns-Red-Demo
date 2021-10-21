@@ -98,6 +98,16 @@ public class PopManager : Singleton<PopManager> {
         }
     }
 
+    public void DoPopSide(string type, float xVel, float yVel, bool side) {
+        if(pops.TryGetValue(type, out var prefab)) {
+            var inst = ObjectPool.Instance.GetObject(prefab);
+            var anchor = side ? popAnchorRight : popAnchorLeft;
+            inst.transform.position = anchor.position;
+            var comp = inst.GetComponent<PopSim>();
+            comp.velocity = new Vector3(xVel, yVel, 0);
+        }
+    }
+
     public bool HasPop(string type) {
         return pops.ContainsKey(type);
     }

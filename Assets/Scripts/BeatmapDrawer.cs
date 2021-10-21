@@ -14,9 +14,21 @@ public class BeatmapDrawer : Singleton<BeatmapDrawer> {
 
     [SerializeField]
     protected GameObject beat;
+    [SerializeField]
+    protected GameObject beatLeft;
+    [SerializeField]
+    protected GameObject beatRight;
+    [SerializeField]
+    protected float leftBeatOffset;
+    [SerializeField]
+    protected float rightBeatOffset;
 
     [SerializeField]
     protected GameObject deadBeat;
+    [SerializeField]
+    protected GameObject deadBeatLeft;
+    [SerializeField]
+    protected GameObject deadBeatRight;
 
     [SerializeField]
     protected GameObject holdLine;
@@ -53,6 +65,7 @@ public class BeatmapDrawer : Singleton<BeatmapDrawer> {
     [System.Serializable]
     public struct BeatObject {
         public int beat;
+        public int actBeat;
         public Vector3 postAtZero;
         public GameObject obj;
         public Vector3 vel;
@@ -61,6 +74,17 @@ public class BeatmapDrawer : Singleton<BeatmapDrawer> {
 
         public BeatObject(int beat, Vector3 postAtZero, GameObject obj, bool isPup, bool left) {
             this.beat = beat;
+            this.actBeat = beat;
+            this.postAtZero = postAtZero;
+            this.obj = obj;
+            vel = new Vector3(0, 0, 0);
+            this.isPup = isPup;
+            this.left = left;
+        }
+
+        public BeatObject(int beat, int actBeat, Vector3 postAtZero, GameObject obj, bool isPup, bool left) {
+            this.beat = beat;
+            this.actBeat = actBeat;
             this.postAtZero = postAtZero;
             this.obj = obj;
             vel = new Vector3(0, 0, 0);
@@ -245,7 +269,7 @@ public class BeatmapDrawer : Singleton<BeatmapDrawer> {
 
         var beatNum = BeatmapController.Instance.GetBeatNumber();
 
-        while(currentBeat < beatNum + beatsAhead && BeatmapController.Instance.songIsRunning) {
+        while(currentBeat < beatNum + beatsAhead && (BeatmapController.Instance.songIsRunning || BeatmapController.Instance.inPrestart)) {
             currentBeat++;
 
             if(currentBeat < BeatmapController.Instance.currentBeatmap.map.Length) {
@@ -257,33 +281,67 @@ public class BeatmapDrawer : Singleton<BeatmapDrawer> {
                     newThing.transform.rotation = Quaternion.identity;
                     newThing.GetComponentInChildren<TMPro.TMP_Text>().text = (currentBeat / BeatmapController.Instance.currentBeatmap.sixteenthsInAMeasure + 1).ToString();
                     newThing.transform.parent = beatmap;
-                    beatObjects.Add(new BeatObject(currentBeat, topAnchor.position + new Vector3(0, 0, 1), newThing, false, false));
+                    beatObjects.Add(new BeatObject(currentBeat, topAnchor.position + new Vector3(0, 0, 1.5f), newThing, false, false));
                 } else if(currentBeat % BeatmapController.Instance.currentBeatmap.sixteenthsInABeat == 0) { //beat
                     var newThing = ObjectPool.Instance.GetObject(beatLine);
                     newThing.transform.rotation = Quaternion.identity;
                     newThing.transform.parent = beatmap;
-                    beatObjects.Add(new BeatObject(currentBeat, topAnchor.position + new Vector3(0, 0, 1), newThing, false, false));
+                    beatObjects.Add(new BeatObject(currentBeat, topAnchor.position + new Vector3(0, 0, 1.5f), newThing, false, false));
                 } else { //sixteenth
                     var newThing = ObjectPool.Instance.GetObject(sixteenthLine);
                     newThing.transform.rotation = Quaternion.identity;
                     newThing.transform.parent = beatmap;
-                    beatObjects.Add(new BeatObject(currentBeat, topAnchor.position + new Vector3(0, 0, 1), newThing, false, false));
+                    beatObjects.Add(new BeatObject(currentBeat, topAnchor.position + new Vector3(0, 0, 1.5f), newThing, false, false));
                 }
 
-                if(beatFromMap.hasBeat) {
-                    var newThing = ObjectPool.Instance.GetObject(beat);
-                    newThing.transform.rotation = Quaternion.identity;
-                    newThing.transform.parent = beatmap;
-                    connectedToBeat.Add(new BeatObject(currentBeat, topAnchor.position + new Vector3(0, 0, 0), newThing, false, false));
-                    if(beatFromMap.beatsHeld != 0) {
-                        float offset = 0;
-                        for(int i = 0; i < beatFromMap.beatsHeld - 1; i++) {
-                            offset -= holdOffset;
-                            connectedToHold.Add(new BeatObject(currentBeat, topAnchor.position + new Vector3(0, offset, 0), ObjectPool.Instance.GetObject(holdLine), false, false));
-                            offset -= holdOffset;
-                            connectedToHold.Add(new BeatObject(currentBeat, topAnchor.position + new Vector3(0, offset, 0), ObjectPool.Instance.GetObject(holdLine), false, false));
+                switch(beatFromMap.beat) {
+                    case BeatType.Center: {
+                        var newThing = ObjectPool.Instance.GetObject(beat);
+                        newThing.transform.rotation = Quaternion.identity;
+                        newThing.transform.parent = beatmap;
+                        connectedToBeat.Add(new BeatObject(currentBeat, topAnchor.position + new Vector3(0, 0, 0), newThing, false, false));
+                        if(beatFromMap.beatsHeld != 0) {
+                            float offset = 0;
+                            for(int i = 0; i < beatFromMap.beatsHeld - 1; i++) {
+                                connectedToHold.Add(new BeatObject(currentBeat + i, currentBeat, topAnchor.position + new Vector3(0, offset, 1), ObjectPool.Instance.GetObject(holdLine), false, false));
+                                connectedToHold.Add(new BeatObject(currentBeat + i, currentBeat, topAnchor.position + new Vector3(0, offset + 1, 1), ObjectPool.Instance.GetObject(holdLine), false, false));
+                            }
+                            connectedToHold.Add(new BeatObject(currentBeat + beatFromMap.beatsHeld, currentBeat,
+                                topAnchor.position + new Vector3(0, offset - endHoldOffset, 1), ObjectPool.Instance.GetObject(holdHead), false, false));
                         }
-                        connectedToHold.Add(new BeatObject(currentBeat, topAnchor.position + new Vector3(0, offset - endHoldOffset, 0), ObjectPool.Instance.GetObject(holdHead), false, false));
+                        break;
+                    }
+                    case BeatType.Left: {
+                        var newThing = ObjectPool.Instance.GetObject(beatLeft);
+                        newThing.transform.rotation = Quaternion.identity;
+                        newThing.transform.parent = beatmap;
+                        connectedToBeat.Add(new BeatObject(currentBeat, topAnchor.position + new Vector3(leftBeatOffset, 0, 0), newThing, false, false));
+                        if(beatFromMap.beatsHeld != 0) {
+                            float offset = 0;
+                            for(int i = 0; i < beatFromMap.beatsHeld - 1; i++) {
+                                connectedToHold.Add(new BeatObject(currentBeat + i, currentBeat, topAnchor.position + new Vector3(leftBeatOffset, offset, 1), ObjectPool.Instance.GetObject(holdLine), false, false));
+                                connectedToHold.Add(new BeatObject(currentBeat + i, currentBeat, topAnchor.position + new Vector3(leftBeatOffset, offset + 1, 1), ObjectPool.Instance.GetObject(holdLine), false, false));
+                            }
+                            connectedToHold.Add(new BeatObject(currentBeat + beatFromMap.beatsHeld, currentBeat,
+                                topAnchor.position + new Vector3(leftBeatOffset, offset - endHoldOffset, 1), ObjectPool.Instance.GetObject(holdHead), false, false));
+                        }
+                        break;
+                    }
+                    case BeatType.Right: {
+                        var newThing = ObjectPool.Instance.GetObject(beatRight);
+                        newThing.transform.rotation = Quaternion.identity;
+                        newThing.transform.parent = beatmap;
+                        connectedToBeat.Add(new BeatObject(currentBeat, topAnchor.position + new Vector3(rightBeatOffset, 0, 0), newThing, false, false));
+                        if(beatFromMap.beatsHeld != 0) {
+                            float offset = 0;
+                            for(int i = 0; i < beatFromMap.beatsHeld - 1; i++) {
+                                connectedToHold.Add(new BeatObject(currentBeat + i + 1, currentBeat, topAnchor.position + new Vector3(rightBeatOffset, offset, 1), ObjectPool.Instance.GetObject(holdLine), false, false));
+                                connectedToHold.Add(new BeatObject(currentBeat + i + 1, currentBeat, topAnchor.position + new Vector3(rightBeatOffset, offset + 1, 1), ObjectPool.Instance.GetObject(holdLine), false, false));
+                            }
+                            connectedToHold.Add(new BeatObject(currentBeat + beatFromMap.beatsHeld, currentBeat,
+                                topAnchor.position + new Vector3(rightBeatOffset, offset - endHoldOffset, 1), ObjectPool.Instance.GetObject(holdHead), false, false));
+                        }
+                        break;
                     }
                 }
 
@@ -302,9 +360,9 @@ public class BeatmapDrawer : Singleton<BeatmapDrawer> {
             }
         }
 
-        if(BeatmapController.Instance.songIsRunning) {
+        if(BeatmapController.Instance.songIsRunning || BeatmapController.Instance.inPrestart) {
             for(int i = beatObjects.Count - 1; i >= 0; i--) {
-                if(beatObjects[i].beat < beatNum - 2) {
+                if(beatObjects[i].beat < beatNum - 4) {
                     beatObjects[i].obj.transform.SetParent(null);
                     ObjectPool.Instance.DestroyObject(beatObjects[i].obj);
                     beatObjects.RemoveAt(i);
@@ -319,7 +377,7 @@ public class BeatmapDrawer : Singleton<BeatmapDrawer> {
             }
 
             for(int i = connectedToBeat.Count - 1; i >= 0; i--) {
-                if(connectedToBeat[i].beat < beatNum - 2) {
+                if(connectedToBeat[i].beat < beatNum - 4) {
                     connectedToBeat[i].obj.transform.SetParent(null);
                     ObjectPool.Instance.DestroyObject(connectedToBeat[i].obj);
                     connectedToBeat.RemoveAt(i);
@@ -345,7 +403,13 @@ public class BeatmapDrawer : Singleton<BeatmapDrawer> {
                         connectedToBeat[i].obj.transform.SetParent(null);
                         ObjectPool.Instance.DestroyObject(connectedToBeat[i].obj);
                         if(thing.isPup == false) {
-                            var newThing = ObjectPool.Instance.GetObject(deadBeat);
+                            var beatFab = deadBeat;
+                            if(BeatmapController.Instance.currentBeatmap.map[thing.beat].beat == BeatType.Left) {
+                                beatFab = deadBeatLeft;
+                            } else if(BeatmapController.Instance.currentBeatmap.map[thing.beat].beat == BeatType.Right) {
+                                beatFab = deadBeatRight;
+                            }
+                            var newThing = ObjectPool.Instance.GetObject(beatFab);
                             newThing.transform.SetParent(beatmap);
                             thing.obj = newThing;
                             connectedToBeat[i] = thing;
@@ -362,24 +426,48 @@ public class BeatmapDrawer : Singleton<BeatmapDrawer> {
             }
 
             for(int i = connectedToHold.Count - 1; i >= 0; i--) {
-                if(connectedToHold[i].beat < beatNum - 2) {
+                if(connectedToHold[i].beat < beatNum - 4) {
                     ObjectPool.Instance.DestroyObject(connectedToHold[i].obj);
                     connectedToHold.RemoveAt(i);
 
                     continue;
                 }
 
-                if(BeatmapController.Instance.heldKilled[connectedToHold[i].beat]) {
-                    ObjectPool.Instance.DestroyObject(connectedToHold[i].obj);
-                    var thing = connectedToHold[i];
-                    thing.obj = ObjectPool.Instance.GetObject(deadBeat);
-                    connectedToHold[i] = thing;
+                if(BeatmapController.Instance.heldKilled[connectedToHold[i].actBeat]) {
+                    var isEnd = connectedToHold[i].obj.name == "HeldNoteEndFlipped";
+                    var isDead = connectedToHold[i].obj.name.Contains("Dead");
+                    if(!isDead) {
+                        ObjectPool.Instance.DestroyObject(connectedToHold[i].obj);
+                        var beatFab = holdLineDead;
+                        if(isEnd) {
+                            beatFab = holdHeadDead;
+                        }
+                        var thing = connectedToHold[i];
+                        thing.obj = ObjectPool.Instance.GetObject(beatFab);
+                        connectedToHold[i] = thing;
+                    }
                 }
 
                 var beatDif = connectedToHold[i].beat * BeatmapController.Instance.currentBeatmap.sixteenthTime - BeatmapController.Instance.currentSongTime;
                 beatDif = beatDif / BeatmapController.Instance.currentBeatmap.sixteenthTime;
 
-                connectedToHold[i].obj.transform.position = connectedToHold[i].postAtZero + new Vector3(0, beatOffset * beatDif, 0);
+                connectedToHold[i].obj.transform.position = connectedToHold[i].postAtZero + new Vector3(0, beatOffset * beatDif, .5f);
+            }
+
+            foreach(var held in BeatmapController.Instance.heldNotes) {
+                for(int i = 0; i < connectedToHold.Count; i++) {
+                    if(connectedToHold[i].actBeat == held.Item2) {
+                        if(held.Item1) {
+                            var beat = connectedToHold[i];
+                            beat.postAtZero.x = rightBeatOffset;
+                            connectedToHold[i] = beat;
+                        } else {
+                            var beat = connectedToHold[i];
+                            beat.postAtZero.x = leftBeatOffset;
+                            connectedToHold[i] = beat;
+                        }
+                    }
+                }
             }
         }
     }

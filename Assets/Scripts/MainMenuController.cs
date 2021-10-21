@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
+using Newtonsoft.Json;
 
 public class MainMenuController : Singleton<MainMenuController> {
 
@@ -54,11 +55,11 @@ public class MainMenuController : Singleton<MainMenuController> {
     public List<Beatmap> GetBeatmaps() {
         var list = new List<Beatmap>();
         foreach(var ta in preloadedBeatmaps) {
-            list.Add(JsonUtility.FromJson<Beatmap>(ta.text));
+            list.Add(JsonConvert.DeserializeObject<Beatmap>(ta.text));
         }
 
         foreach(var file in Directory.GetFiles(Application.persistentDataPath, "*.json")) {
-            list.Add(JsonUtility.FromJson<Beatmap>(File.ReadAllText(file)));
+            list.Add(JsonConvert.DeserializeObject<Beatmap>(File.ReadAllText(file)));
         }
 
         return list;

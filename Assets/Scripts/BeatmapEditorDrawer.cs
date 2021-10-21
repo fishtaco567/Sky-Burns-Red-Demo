@@ -1,9 +1,10 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
-using Rewired;
+﻿using System.Collections.Generic;
 using System.IO;
-using UnityEngine.EventSystems;
 using System.Linq;
+using Newtonsoft.Json;
+using Rewired;
+using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class BeatmapEditorDrawer : Singleton<BeatmapEditorDrawer> {
 
@@ -27,7 +28,15 @@ public class BeatmapEditorDrawer : Singleton<BeatmapEditorDrawer> {
     protected GameObject measureLine;
 
     [SerializeField]
-    protected GameObject beat;
+    protected GameObject beatCenter;
+    [SerializeField]
+    protected GameObject beatLeft;
+    [SerializeField]
+    protected GameObject beatRight;
+    [SerializeField]
+    protected float leftBeatOffset;
+    [SerializeField]
+    protected float rightBeatOffset;
 
     [SerializeField]
     protected GameObject holdLine;
@@ -59,7 +68,7 @@ public class BeatmapEditorDrawer : Singleton<BeatmapEditorDrawer> {
 
     protected Player rewiredPlayer;
 
-    protected int currentBar;
+    public int currentBar;
 
     [SerializeField]
     protected float easing;
@@ -78,6 +87,9 @@ public class BeatmapEditorDrawer : Singleton<BeatmapEditorDrawer> {
     protected TMPro.TMP_Dropdown difficultyField;
     [SerializeField]
     protected TMPro.TMP_Dropdown musicEventField;
+
+    public bool isHolding = false;
+    public int holdingBeat = 0;
 
     protected void Start() {
         rewiredPlayer = ReInput.players.GetPlayer(0);
@@ -105,6 +117,9 @@ public class BeatmapEditorDrawer : Singleton<BeatmapEditorDrawer> {
 
         difficultyField.value = difFieldText.IndexOf(currentBeatmap.difficulty);
         musicEventField.value = musFieldText.IndexOf(currentBeatmap.songEvent);
+
+        isHolding = false;
+        holdingBeat = 0;
     }
 
     public void Update() {
@@ -112,6 +127,8 @@ public class BeatmapEditorDrawer : Singleton<BeatmapEditorDrawer> {
             return;
         }
         var click = rewiredPlayer.GetButtonDown("Click");
+        var clickLeft = rewiredPlayer.GetButtonDown("ClickLeft");
+        var clickRight = rewiredPlayer.GetButtonDown("ClickRight");
         var up = rewiredPlayer.GetButtonDown("Up");
         var down = rewiredPlayer.GetButtonDown("Down");
         var left = rewiredPlayer.GetButtonDown("Left");
@@ -121,9 +138,18 @@ public class BeatmapEditorDrawer : Singleton<BeatmapEditorDrawer> {
         var lpup2 = rewiredPlayer.GetButtonDown("LeftPup2");
         var rpup1 = rewiredPlayer.GetButtonDown("RightPup1");
         var rpup2 = rewiredPlayer.GetButtonDown("RightPup2");
+        var holdDown = rewiredPlayer.GetButton("Hold");
 
-        if(click) {
-            ClickBar(currentBar);
+        if(click || clickLeft || clickRight) {
+            var type = BeatType.None;
+            if(clickLeft) {
+                type = BeatType.Left;
+            } else if(clickRight) {
+                type = BeatType.Right;
+            } else {
+                type = BeatType.Center;
+            }
+            ClickBar(currentBar, type);
         }
 
         if(up) {
@@ -150,6 +176,21 @@ public class BeatmapEditorDrawer : Singleton<BeatmapEditorDrawer> {
             Pup((lpup1 || lpup2), (rpup1 || lpup1), currentBar);
         }
 
+        if(!isHolding && holdDown && currentBeatmap.map[currentBar].beat != BeatType.None) {
+            isHolding = true;
+            holdingBeat = currentBar;
+        }
+
+        if(isHolding && currentBar > holdingBeat) {
+            currentBeatmap.map[holdingBeat].beatsHeld = currentBar - holdingBeat;
+            RedrawEditor(currentBeatmap);
+        }
+
+        if(isHolding && !holdDown) {
+            isHolding = false;
+            holdingBeat = 0;
+        }
+
         currentBar = Mathf.Clamp(currentBar, 0, currentBeatmap.map.Length - 1);
 
         baseObject.transform.position = Vector3.Lerp(baseObject.transform.position, new Vector3(0, currentBar * barOffset + 1, 0), easing);
@@ -174,7 +215,7 @@ public class BeatmapEditorDrawer : Singleton<BeatmapEditorDrawer> {
         var difs = difficultyField.options[difficultyField.value].text;
         difs = difs.Substring(difs.Length - 3);
         var filename = Application.persistentDataPath + "/" + nameField.text + difs + ".json";
-        var json = JsonUtility.ToJson(currentBeatmap);
+        var json = JsonConvert.SerializeObject(currentBeatmap);
         File.WriteAllText(filename, json);
     }
 
@@ -210,30 +251,39 @@ public class BeatmapEditorDrawer : Singleton<BeatmapEditorDrawer> {
                 bars.Add(new EditorBeatObject(i, newBar));
             }
 
-            if(currentBeatmap.map[i].hasBeat) {
-                var newBeat = ObjectPool.Instance.GetObject(beat);
-                newBeat.transform.SetParent(baseObject.transform);
-                newBeat.transform.localPosition = new Vector3(0, -i * barOffset - beatOffset, 0);
-                beatObjects.Add(new EditorBeatObject(i, newBeat));
-                if(currentBeatmap.map[i].beatsHeld != 0) {
-                    var offset = 0f;
-                    for(int j = 0; j < currentBeatmap.map[j].beatsHeld - 1; j++) {
-                        offset -= holdOffset;
-                        var newHold1 = ObjectPool.Instance.GetObject(holdLine);
-                        newHold1.transform.SetParent(baseObject.transform);
-                        newHold1.transform.localPosition = new Vector3(0, -i * barOffset - offset - beatOffset, 0);
-                        beatObjects.Add(new EditorBeatObject(i, newHold1));
-                        offset -= holdOffset;
-                        var newHold2 = ObjectPool.Instance.GetObject(holdLine);
-                        newHold2.transform.SetParent(baseObject.transform);
-                        newHold2.transform.localPosition = new Vector3(0, -i * barOffset - offset - beatOffset, 0);
-                        beatObjects.Add(new EditorBeatObject(i, newHold2));
+            switch(currentBeatmap.map[i].beat) {
+                case BeatType.Center: {
+                    var newBeat = ObjectPool.Instance.GetObject(beatCenter);
+                    var offset = new Vector3(0, -i * barOffset - beatOffset, 0);
+                    newBeat.transform.SetParent(baseObject.transform);
+                    newBeat.transform.localPosition = offset;
+                    beatObjects.Add(new EditorBeatObject(i, newBeat));
+                    if(currentBeatmap.map[i].beatsHeld != 0) {
+                        AddHoldLine(i, offset);
                     }
-
-                    var holdEndObj = ObjectPool.Instance.GetObject(holdHead);
-                    holdEndObj.transform.SetParent(baseObject.transform);
-                    holdEndObj.transform.localPosition = new Vector3(0, -i * barOffset - offset - beatOffset, 0);
-                    beatObjects.Add(new EditorBeatObject(i, holdEndObj));
+                    break;
+                }
+                case BeatType.Left: {
+                    var newBeat = ObjectPool.Instance.GetObject(beatLeft);
+                    var offset = new Vector3(leftBeatOffset, -i * barOffset - beatOffset, 0);
+                    newBeat.transform.SetParent(baseObject.transform);
+                    newBeat.transform.localPosition = offset;
+                    beatObjects.Add(new EditorBeatObject(i, newBeat));
+                    if(currentBeatmap.map[i].beatsHeld != 0) {
+                        AddHoldLine(i, offset);
+                    }
+                    break;
+                }
+                case BeatType.Right: {
+                    var newBeat = ObjectPool.Instance.GetObject(beatRight);
+                    var offset = new Vector3(rightBeatOffset, -i * barOffset - beatOffset, 0);
+                    newBeat.transform.SetParent(baseObject.transform);
+                    newBeat.transform.localPosition = offset;
+                    beatObjects.Add(new EditorBeatObject(i, newBeat));
+                    if(currentBeatmap.map[i].beatsHeld != 0) {
+                        AddHoldLine(i, offset);
+                    }
+                    break;
                 }
             }
 
@@ -252,11 +302,32 @@ public class BeatmapEditorDrawer : Singleton<BeatmapEditorDrawer> {
         }
     }
 
-    public void ClickBar(int bar) {
-        if(bar > 0 || bar <= currentBeatmap.map.Length) {
-            bool hasBeat = currentBeatmap.map[bar].hasBeat;
+    private void AddHoldLine(int i, Vector3 basePos) {
+        var offset = -1.25f;
+        for(int j = 0; j < currentBeatmap.map[i].beatsHeld - 1; j++) {
+            var newHold1 = ObjectPool.Instance.GetObject(holdLine);
+            newHold1.transform.SetParent(baseObject.transform);
+            newHold1.transform.localPosition = basePos + new Vector3(0, offset, 1);
+            beatObjects.Add(new EditorBeatObject(i, newHold1));
+            offset -= holdOffset;
+            var newHold2 = ObjectPool.Instance.GetObject(holdLine);
+            newHold2.transform.SetParent(baseObject.transform);
+            newHold2.transform.localPosition = basePos + new Vector3(0, offset, 1);
+            beatObjects.Add(new EditorBeatObject(i, newHold2));
+            offset -= holdOffset;
+        }
 
-            if(hasBeat) {
+        var holdEndObj = ObjectPool.Instance.GetObject(holdHead);
+        holdEndObj.transform.SetParent(baseObject.transform);
+        holdEndObj.transform.localPosition = basePos + new Vector3(0, offset - 0.5f, 1);
+        beatObjects.Add(new EditorBeatObject(i, holdEndObj));
+    }
+
+    public void ClickBar(int bar, BeatType type) {
+        if(bar > 0 || bar <= currentBeatmap.map.Length) {
+            bool hasSameBeat = currentBeatmap.map[bar].beat == type;
+
+            if(hasSameBeat) {
                 currentBeatmap.map[bar] = new Beatmap.Beat();
                 for(int i = beatObjects.Count - 1; i >= 0; i--) {
                     if(beatObjects[i].beat == bar) {
@@ -266,11 +337,14 @@ public class BeatmapEditorDrawer : Singleton<BeatmapEditorDrawer> {
                     }
                 }
             } else {
-                currentBeatmap.map[bar] = new Beatmap.Beat(true, 0, false, false, 0);
-                var newBeat = ObjectPool.Instance.GetObject(beat);
-                newBeat.transform.SetParent(baseObject.transform);
-                newBeat.transform.localPosition = new Vector3(0, -bar * barOffset - beatOffset, 0);
-                beatObjects.Add(new EditorBeatObject(bar, newBeat));
+                currentBeatmap.map[bar].beat = type;
+                currentBeatmap.map[bar].beatsHeld = 0;
+                if(type == BeatType.Left) {
+                    currentBeatmap.map[bar].rightPowerup = false;
+                } else if(type == BeatType.Right) {
+                    currentBeatmap.map[bar].leftPowerup = false;
+                }
+                RedrawEditor(currentBeatmap);
             }
         }
     }

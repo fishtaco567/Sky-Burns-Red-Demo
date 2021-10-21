@@ -172,6 +172,7 @@ public class SingleArmSim : ISimulator {
     public System.Collections.IEnumerator EndCoroutine(float time) {
         yield return new WaitForSeconds(4f);
         GameManager.Instance.ToFailScreen(time);
+        BeatmapController.Instance.ExecuteFailPrograms();
     }
 
     public override void OnDamage(float damage) {
@@ -202,6 +203,10 @@ public class SingleArmSim : ISimulator {
 
     public override float GetAngle() {
         return theta * Mathf.Rad2Deg;
+    }
+
+    public override float GetRepair() {
+        return initialSpring / 55;
     }
 
     public override void Repair(float i) {

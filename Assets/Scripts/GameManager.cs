@@ -32,13 +32,7 @@ public class GameManager : Singleton<GameManager> {
     protected GameState lastState;
 
     protected void Start() {
-        GoToMainMenu();
-
-        SkyEventManager.Instance.CreateAndExecuteProgram(
-            "LoopFor x = 1:10\n" +
-            "    DispatchEventWithDelay 1 SpawnPop('Good', 10+x, 10, 0, 0)\n" +
-            "    WaitSeconds 1");
-        
+        GoToMainMenu();        
     }
 
     public void OpenEditMode(Beatmap b) {

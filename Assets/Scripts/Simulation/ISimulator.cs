@@ -71,6 +71,8 @@ public abstract class ISimulator : MonoBehaviour {
 
     public abstract float GetAngle();
 
+    public abstract float GetRepair();
+
     public virtual void Repair(float i) {
     
     }

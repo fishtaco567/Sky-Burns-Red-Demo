@@ -10,6 +10,11 @@ public class BeatmapController : Singleton<BeatmapController> {
     protected float impulse;
     [SerializeField]
     protected float impulseTime;
+    [SerializeField]
+    protected float holdForce;
+
+    [SerializeField]
+    protected float preStartTime;
 
     public Beatmap currentBeatmap;
     public bool[] consumeArray;
@@ -30,6 +35,12 @@ public class BeatmapController : Singleton<BeatmapController> {
     [SerializeField]
     protected float maxPosthitTime;
 
+    [SerializeField]
+    protected float maxPreHoldEndTime;
+    [SerializeField]
+    protected float maxPostHoldEndTime;
+
+
     [Range(-0.2f, 0.2f)]
     [SerializeField]
     protected float timeOffset;
@@ -38,8 +49,14 @@ public class BeatmapController : Singleton<BeatmapController> {
     protected float songStartTime;
     public float currentSongTime {
         get {
-            song.getTimelinePosition(out int pos);
-            return pos / 1000f + timeOffset;
+            if(songIsRunning) {
+                song.getTimelinePosition(out int pos);
+                return pos / 1000f + timeOffset;
+            } else if(inPrestart) {
+                return -2.564f + (Time.time - prestartStartedAt);
+            } else {
+                return -5;
+            }
         }
     }
 
@@ -73,6 +90,9 @@ public class BeatmapController : Singleton<BeatmapController> {
 
     public float maxAngle;
 
+    public int currentStreak;
+    public int maxStreak;
+
     public bool hitLeft;
     public bool hitRight;
 
@@ -83,7 +103,20 @@ public class BeatmapController : Singleton<BeatmapController> {
     [FMODUnity.EventRef]
     public string pup;
 
+    public List<(bool, int)> heldNotes;
+
     public int sbrcount = 0;
+
+    protected int currentBeat = 0;
+
+    private Dictionary<int, List<SkyEventProgram>> programsForSong;
+    private List<SkyEventProgram> succeedEvents;
+    private List<SkyEventProgram> failEvents;
+
+    protected int holdForceHandle;
+
+    public bool inPrestart;
+    private float prestartStartedAt;
 
     protected void Start() {
         rewiredPlayer = ReInput.players.GetPlayer(0);
@@ -95,12 +128,24 @@ public class BeatmapController : Singleton<BeatmapController> {
         }
         var lastBeat = GetBeatNumber();
 
+        if(lastBeat > currentBeat) {
+            currentBeat = lastBeat;
+            if(programsForSong.TryGetValue(currentBeat, out var list)) {
+                foreach(var program in list) {
+                    SkyEventManager.Instance.ExecuteProgram(program);
+                }
+            }
+        }
+
         song.getPlaybackState(out var state);
         if(lastBeat >= currentBeatmap.map.Length) {
             GameManager.Instance.ResultsScreen(numPerfect, numGood, numOk, numMissed, numHit / (float)numNotes, maxAngle);
             FMODUnity.RuntimeManager.PlayOneShot(chant);
             SimulatorManager.Instance.currentSim.Stop();
             EndSong(true);
+            foreach(var program in succeedEvents) {
+                SkyEventManager.Instance.ExecuteProgram(program);
+            }
         }
 
         maxAngle = Mathf.Max(maxAngle, Mathf.Abs(SimulatorManager.Instance.currentSim.GetAngle()));
@@ -114,22 +159,25 @@ public class BeatmapController : Singleton<BeatmapController> {
         var postTwoBeats = curPostHitTime + currentBeatmap.sixteenthTime;
         var postThreeBeats = curPostHitTime + currentBeatmap.sixteenthTime * 2;
 
-        if(lastBeat >= 0 && lastBeat < currentBeatmap.map.Length && currentBeatmap.map[lastBeat].hasBeat && !consumeArray[lastBeat] && curPostHitTime > maxPosthitTime) {
+        if(lastBeat >= 0 && lastBeat < currentBeatmap.map.Length && currentBeatmap.map[lastBeat].beat != BeatType.None && !consumeArray[lastBeat] && curPostHitTime > maxPosthitTime) {
             consumeArray[lastBeat] = true;
+            heldKilled[lastBeat] = true;
             numMissed += 1;
             numNotes += 1;
             OnBadHit();
         }
 
-        if(twoBeatsAgo >= 0 && twoBeatsAgo < currentBeatmap.map.Length && currentBeatmap.map[twoBeatsAgo].hasBeat && !consumeArray[twoBeatsAgo] && postTwoBeats > maxPosthitTime) {
+        if(twoBeatsAgo >= 0 && twoBeatsAgo < currentBeatmap.map.Length && currentBeatmap.map[twoBeatsAgo].beat != BeatType.None && !consumeArray[twoBeatsAgo] && postTwoBeats > maxPosthitTime) {
             consumeArray[twoBeatsAgo] = true;
+            heldKilled[twoBeatsAgo] = true;
             numMissed += 1;
             numNotes += 1;
             OnBadHit();
         }
 
-        if(threeBeatsAgo >= 0 && threeBeatsAgo < currentBeatmap.map.Length && currentBeatmap.map[threeBeatsAgo].hasBeat && !consumeArray[threeBeatsAgo] && postThreeBeats > maxPosthitTime) {
+        if(threeBeatsAgo >= 0 && threeBeatsAgo < currentBeatmap.map.Length && currentBeatmap.map[threeBeatsAgo].beat != BeatType.None && !consumeArray[threeBeatsAgo] && postThreeBeats > maxPosthitTime) {
             consumeArray[threeBeatsAgo] = true;
+            heldKilled[threeBeatsAgo] = true;
             numMissed += 1;
             numNotes += 1;
             OnBadHit();
@@ -139,6 +187,23 @@ public class BeatmapController : Singleton<BeatmapController> {
             lastTapped += 4;
             //tap.Play();
         }
+
+        var leftHeld = false;
+        var rightHeld = false;
+        var curHoldForce = 0.0f;
+        foreach(var held in heldNotes) {
+            if(held.Item1) {
+                curHoldForce += holdForce;
+                rightHeld = true;
+            } else {
+                curHoldForce -= holdForce;
+                leftHeld = true;
+            }
+        }
+        SimulatorManager.Instance.currentSim.UpdateForce(holdForceHandle, curHoldForce);
+
+        rightHoldAnim.SetBool("IsHolding", rightHeld);
+        leftHoldAnim.SetBool("IsHolding", leftHeld);
     }
 
     public void SetCurrentBarWithLeadIn(int bar) {
@@ -159,6 +224,7 @@ public class BeatmapController : Singleton<BeatmapController> {
 
         FMODUnity.RuntimeManager.PlayOneShot(badHit);
         FMODUnity.RuntimeManager.StudioSystem.setParameterByName("Fucked", 1);
+        currentStreak = 0;
     }
 
     public void ProcessInput() {
@@ -168,17 +234,44 @@ public class BeatmapController : Singleton<BeatmapController> {
         bool right = rewiredPlayer.GetButtonDown("Right");
         var buttonPressed = left || right;
 
+        var leftHeld = rewiredPlayer.GetButton("Left");
+        var rightHeld = rewiredPlayer.GetButton("Right");
+
         var lastBeat = GetBeatNumber();
         var nextBeat = lastBeat + 1;
 
         var inputConsumed = false;
 
+        for(int i = heldNotes.Count - 1; i >= 0; i--) {
+            var holdEndsAt = currentBeatmap.GetTimeOfHeldEnd(heldNotes[i].Item2);
+            var holdEndDif = currentSongTime - holdEndsAt;
+
+            var reasonableHold = false;
+            if(holdEndDif > maxPostHoldEndTime || holdEndDif < -maxPrehitTime) {
+                reasonableHold = true;
+            }
+
+            if(heldNotes[i].Item1 && !rightHeld) {
+                heldKilled[heldNotes[i].Item2] = !reasonableHold; 
+                heldNotes.RemoveAt(i);
+
+                PopManager.Instance.DoPerfPop(false, false);
+            } else if(!heldNotes[i].Item1 && !leftHeld) {
+                heldKilled[heldNotes[i].Item2] = !reasonableHold;
+                heldNotes.RemoveAt(i);
+
+                PopManager.Instance.DoPerfPop(true, false);
+            }
+        }
+
         if(buttonPressed && lastBeat >= 0 && lastBeat < currentBeatmap.map.Length && !consumeArray[lastBeat] && GetPostHitTime() < maxPosthitTime) {
-            if(currentBeatmap.map[lastBeat].hasBeat) {
+            if((currentBeatmap.map[lastBeat].beat == BeatType.Center) || (left && currentBeatmap.map[lastBeat].beat == BeatType.Left) || (right && currentBeatmap.map[lastBeat].beat == BeatType.Right)) {
                 consumeArray[lastBeat] = true;
                 inputConsumed = true;
                 numNotes += 1;
                 numHit += 1;
+                currentStreak += 1;
+                maxStreak = Mathf.Max(currentStreak, maxStreak);
 
                 if(GetPostHitTime() < perfectPosthitTime) {
                     PopManager.Instance.DoPerfPop(left, false);
@@ -191,6 +284,14 @@ public class BeatmapController : Singleton<BeatmapController> {
                     PopManager.Instance.DoOkPop(left, false);
                     crowd.OnOkHit();
                     numOk += 1;
+                }
+
+                if(currentBeatmap.map[lastBeat].beatsHeld != 0) {
+                    var side = right;
+                    if(currentBeatmap.map[lastBeat].beat == BeatType.Left) {
+                        side = left;
+                    }
+                    heldNotes.Add((side, lastBeat));
                 }
 
                 if(currentBeatmap.map[lastBeat].leftPowerup && left) {
@@ -220,7 +321,7 @@ public class BeatmapController : Singleton<BeatmapController> {
         }
 
         if(buttonPressed && !inputConsumed && nextBeat >= 0 && nextBeat < currentBeatmap.map.Length && !consumeArray[nextBeat] && GetPreHitTime() < maxPrehitTime) {
-            if(currentBeatmap.map[nextBeat].hasBeat) {
+            if((currentBeatmap.map[nextBeat].beat == BeatType.Center) || (left && currentBeatmap.map[nextBeat].beat == BeatType.Left) || (right && currentBeatmap.map[nextBeat].beat == BeatType.Right)) {
                 consumeArray[nextBeat] = true;
                 inputConsumed = true;
                 numNotes += 1;
@@ -237,6 +338,14 @@ public class BeatmapController : Singleton<BeatmapController> {
                     PopManager.Instance.DoOkPop(left, false);
                     crowd.OnOkHit();
                     numOk += 1;
+                }
+
+                if(currentBeatmap.map[nextBeat].beatsHeld != 0) {
+                    var side = right;
+                    if(currentBeatmap.map[nextBeat].beat == BeatType.Left) {
+                        side = left;
+                    }
+                    heldNotes.Add((side, nextBeat));
                 }
 
                 if(currentBeatmap.map[nextBeat].leftPowerup && left) {
@@ -288,8 +397,11 @@ public class BeatmapController : Singleton<BeatmapController> {
         this.leftPup = new bool[beatmap.map.Length];
         this.rightPup = new bool[beatmap.map.Length];
         this.heldKilled = new bool[beatmap.map.Length];
+        this.heldNotes = new List<(bool, int)>();
         BeatmapDrawer.Instance.ResetBeatsDrawn();
         song = FMODUnity.RuntimeManager.CreateInstance(currentBeatmap.songEvent);
+        song.start();
+        song.setPaused(true);
         crowd.StartNewSong();
 
         numHit = 0;
@@ -300,16 +412,62 @@ public class BeatmapController : Singleton<BeatmapController> {
         numMissed = 0;
         maxAngle = 0;
         sbrcount = 0;
+        currentStreak = 0;
+        maxStreak = 0;
+        currentBeat = -1;
+        holdForceHandle = SimulatorManager.Instance.currentSim.StartForce(0);
+
+        programsForSong = new Dictionary<int, List<SkyEventProgram>>();
+        if(currentBeatmap.events != null) {
+            foreach(var programPair in currentBeatmap.events) {
+                foreach(var source in programPair.Value) {
+                    if(programsForSong.TryGetValue(programPair.Key, out var listForKey)) {
+                        listForKey.Add(SkyEventManager.Instance.CreateProgram(source));
+                    }
+                }
+            }
+        }
+
+        succeedEvents = new List<SkyEventProgram>();
+        failEvents = new List<SkyEventProgram>();
+
+        if(currentBeatmap.presongEvent != null) {
+            foreach(var pse in currentBeatmap.presongEvent) {
+                SkyEventManager.Instance.CreateAndExecuteProgram(pse);
+            }
+        }
+        if(currentBeatmap.succeedEvent != null) {
+            foreach(var se in currentBeatmap.succeedEvent) {
+                succeedEvents.Add(SkyEventManager.Instance.CreateProgram(se));
+            }
+        }
+        if(currentBeatmap.failEvent != null) {
+            foreach(var fe in currentBeatmap.failEvent) {
+                failEvents.Add(SkyEventManager.Instance.CreateProgram(fe));
+            }
+        }
     }
 
     public void StartNewSong() {
-        songIsRunning = true;
-        songStartTime = Time.time + 5;
-        lastTapped = 0;
-        song.start();
-        foreach(var fc in fans) {
-            fc.Sync();
+        prestartStartedAt = Time.time;
+        inPrestart = true;
+        StartCoroutine(StartSongCoroutine());
+    }
+
+    private System.Collections.IEnumerator StartSongCoroutine() {
+        yield return new WaitForSeconds(preStartTime);
+
+        if(GameManager.Instance.state == GameManager.GameState.Play || GameManager.Instance.state == GameManager.GameState.Test) {
+            inPrestart = false;
+            songIsRunning = true;
+            songStartTime = Time.time + 5;
+            lastTapped = 0;
+            song.setPaused(false);
+            foreach(var fc in fans) {
+                fc.Sync();
+            }
         }
+        inPrestart = false;
     }
 
     public void PauseSong() {
@@ -327,6 +485,8 @@ public class BeatmapController : Singleton<BeatmapController> {
         BeatmapDrawer.Instance.Stop(canFall);
         song.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
         crowd.EndSong();
+        SimulatorManager.Instance.currentSim.EndForce(holdForceHandle);
+        inPrestart = false;
     }
 
     public float GetTimeLeft() {
@@ -340,7 +500,7 @@ public class BeatmapController : Singleton<BeatmapController> {
 
     //This is the beat number "before" the current time
     public int GetBeatNumber() {
-        return Mathf.FloorToInt(currentSongTime / currentBeatmap.sixteenthTime);
+        return currentBeatmap.GetBeatForTime(currentSongTime);
     }
 
     public float GetPostHitTime() {
@@ -356,6 +516,12 @@ public class BeatmapController : Singleton<BeatmapController> {
         songIsRunning = false;
         GameManager.Instance.GoToMainMenu();
         SimulatorManager.Instance.currentSim.Stop();
+    }
+
+    public void ExecuteFailPrograms() {
+        foreach(var program in failEvents) {
+            SkyEventManager.Instance.ExecuteProgram(program);
+        }
     }
 
 }

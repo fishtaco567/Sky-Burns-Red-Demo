@@ -87,6 +87,10 @@ public class DualArmSim : ISimulator {
         return Mathf.Max(theta.x, theta.y);
     }
 
+    public override float GetRepair() {
+        return Mathf.Max(k.x, k.y) / 55;
+    }
+
     public override void Stop() {
 
     }
