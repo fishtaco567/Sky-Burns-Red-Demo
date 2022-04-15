@@ -62,10 +62,47 @@ public class SingleArmSim : ISimulator {
     [SerializeField]
     protected BraceController[] braces;
 
+    [SerializeField]
+    protected float trickCooldown;
+
+    protected float perfectlyBalancedTimer;
+    protected float onTheEdgeTimer;
+    protected float maxSpeedTimer;
+    protected float shakerTimer;
+
+    protected bool edgePrimed;
+    protected float perfectlyBalancedTime;
+    protected System.Collections.Generic.List<float> shakerList;
+
+    [SerializeField]
+    protected float edgeMargin;
+    [SerializeField]
+    protected float minPerfectlyBalancedTime;
+    [SerializeField]
+    protected float perfectlyBalancedMargin;
+    [SerializeField]
+    protected float maxShakerTime;
+    [SerializeField]
+    protected int maxShakerAmount;
+
+    protected bool side;
+    protected bool balancePrimed;
+
+    public void Start() {
+        shakerList = new System.Collections.Generic.List<float>();
+        perfectlyBalancedTimer = trickCooldown;
+        onTheEdgeTimer = trickCooldown;
+        maxSpeedTimer = trickCooldown;
+        shakerTimer = trickCooldown;
+        balancePrimed = false;
+    }
+
     public override void SimulateTick(float time) {
         if(!isSimulating) {
             return;
         }
+
+        CheckScoring(time);
 
         timeSinceLastCreak += Time.deltaTime;
         if(timeSinceLastCreak > 5f && Mathf.Abs(thetaDot) > 0.15f && Mathf.Abs(theta) > 0.75f) {
@@ -169,6 +206,70 @@ public class SingleArmSim : ISimulator {
         }
     }
 
+    private void CheckScoring(float time) {
+        if(shakerList == null) {
+            shakerList = new System.Collections.Generic.List<float>();
+        }
+
+        perfectlyBalancedTimer += time;
+        onTheEdgeTimer += time;
+        maxSpeedTimer += time;
+        shakerTimer += time;
+
+        var eulerAngle = theta * Mathf.Rad2Deg;
+
+        if(eulerAngle < 0) {
+            if(side == true) {
+                shakerList.Add(0);
+            }
+            side = false;
+        } else {
+            if(side == false) {
+                shakerList.Add(0);
+            }
+            side = true;
+        }
+
+        for(int i = shakerList.Count - 1; i >= 0; i--) {
+            shakerList[i] += time;
+            if(shakerList[i] > maxShakerTime) {
+                shakerList.RemoveAt(i);
+            }
+        }
+
+        if(shakerList.Count >= maxShakerAmount && shakerTimer > trickCooldown) {
+            BeatmapController.Instance.score.Shaker();
+            shakerTimer = 0;
+            shakerList.Clear();
+        }
+        if(Mathf.Abs(eulerAngle) > edgeMargin) {
+            edgePrimed = true;
+        } else if(edgePrimed && onTheEdgeTimer > trickCooldown) {
+            BeatmapController.Instance.score.OnTheEdge();
+            onTheEdgeTimer = 0;
+            edgePrimed = false;
+        }
+
+        if(maxVelocity - Mathf.Abs(thetaDot) < Mathf.Epsilon && maxSpeedTimer > trickCooldown) {
+            BeatmapController.Instance.score.MaxSpeed();
+            maxSpeedTimer = 0;
+        }
+
+        if(Mathf.Abs(eulerAngle) < perfectlyBalancedMargin) {
+            if(balancePrimed) {
+                perfectlyBalancedTime += time;
+            }
+        } else {
+            perfectlyBalancedTime = 0;
+            balancePrimed = true;
+        }
+
+        if(perfectlyBalancedTime > minPerfectlyBalancedTime && perfectlyBalancedTimer > trickCooldown) {
+            BeatmapController.Instance.score.PerfectlyBalanced();
+            perfectlyBalancedTimer = 0;
+        }
+    }
+
     public System.Collections.IEnumerator EndCoroutine(float time) {
         yield return new WaitForSeconds(4f);
         GameManager.Instance.ToFailScreen(time);
@@ -191,6 +292,14 @@ public class SingleArmSim : ISimulator {
         thetaDot = 0;
         thetaDotDot = 0;
         initialSpring = 55;
+        
+        shakerList = new System.Collections.Generic.List<float>();
+        perfectlyBalancedTimer = trickCooldown;
+        onTheEdgeTimer = trickCooldown;
+        maxSpeedTimer = trickCooldown;
+        shakerTimer = trickCooldown;
+        balancePrimed = false;
+        edgePrimed = false;
 
         foreach(var b in braces) {
             b.SetStage(0);

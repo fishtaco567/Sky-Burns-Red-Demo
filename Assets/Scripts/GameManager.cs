@@ -103,7 +103,7 @@ public class GameManager : Singleton<GameManager> {
         BeatmapController.Instance.EndSong(false);
     }
 
-    public void ResultsScreen(int numPerf, int numGood, int numOk, int numMiss, float percent, float maxAngle) {
+    public void ResultsScreen(int numPerf, int numGood, int numOk, int numMiss, float percent, int score, int bestMulti) {
         state = GameState.Results;
         ActiveAll(editMenuRoots, false);
         ActiveAll(testRoots, false);
@@ -112,7 +112,7 @@ public class GameManager : Singleton<GameManager> {
         ActiveAll(mainMenuRoots, false);
         ActiveAll(failRoots, false);
         ActiveAll(resultsRoots, true);
-        ResultsScreenDrawer.Instance.Setup(numPerf, numGood, numOk, numMiss, percent, maxAngle);
+        ResultsScreenDrawer.Instance.Setup(numPerf, numGood, numOk, numMiss, percent, score, bestMulti);
     }
 
     public void ToFailScreen(float seconds) {

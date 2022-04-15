@@ -11,6 +11,8 @@ public class SkyEventManager : Singleton<SkyEventManager> {
 
     protected List<SkyEventProgram> activePrograms;
 
+    protected Pica.PicaRuntime rt;
+
     public void Awake() {
         gameVariables = new Dictionary<string, float>();
         gameFunctions = new Dictionary<string, Func<FunctionArgs, float>>();
@@ -27,6 +29,10 @@ public class SkyEventManager : Singleton<SkyEventManager> {
         gameEvents.Add("AddCrowdMood", AddCrowdMood);
 
         gameFunctions.Add("Random", Random);
+
+        var inn = System.IO.File.ReadAllText(Application.persistentDataPath + "/test.pica");
+        rt = new Pica.PicaRuntime();
+        rt.AddProgram("overall", inn);
     }
 
     public SkyEventProgram CreateProgram(string s) {
@@ -56,6 +62,7 @@ public class SkyEventManager : Singleton<SkyEventManager> {
                 activePrograms.RemoveAt(i);
             }
         }
+        rt.RunTick();
     }
 
     #region Variables and Functions

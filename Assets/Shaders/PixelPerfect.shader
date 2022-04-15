@@ -5,7 +5,8 @@ Shader "Sprites/Custom/PixelPerfect"
 	Properties
 	{
 		[PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
-		_Color ("Tint", Color) = (1,1,1,1)
+		_Color("Tint", Color) = (1,1,1,1)
+		_Multi("Multi", Range(0, 5)) = 1
 		[MaterialToggle] PixelSnap ("Pixel snap", Float) = 0
 		_ColorBlend ("Color Blend", Float) = 0
 	}
@@ -72,6 +73,7 @@ Shader "Sprites/Custom/PixelPerfect"
 			sampler2D _AlphaTex;
 			float _AlphaSplitEnabled;
 			float _ColorBlend;
+			float _Multi;
 
 			fixed4 SampleSpriteTexture (float2 uv)
 			{
@@ -91,6 +93,7 @@ Shader "Sprites/Custom/PixelPerfect"
 				clip(c.a - .5);
 				c.rgb *= c.a;
 				c.rgb = lerp(c.rgb, _Color.rgb, _ColorBlend);
+				c.rgb *= _Multi;
 				return c;
 			}
 		ENDCG

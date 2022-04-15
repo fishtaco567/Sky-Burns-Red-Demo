@@ -19,6 +19,9 @@ public abstract class ISimulator : MonoBehaviour {
     [SerializeField]
     protected float repairIndicatorSize;
 
+    public Transform leftPopAnchor;
+    public Transform rightPopAnchor;
+
     public abstract void SimulateTick(float time);
 
     protected void Awake() {

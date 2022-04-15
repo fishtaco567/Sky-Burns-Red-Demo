@@ -40,6 +40,8 @@ public class Beatmap {
     public List<string> succeedEvent;
     public List<string> failEvent;
 
+    public string version = "0.0.1";
+
     public int sixteenthsInABeat {
         get {
             return 16 / timeSignature.y;

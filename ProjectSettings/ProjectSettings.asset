@@ -534,14 +534,17 @@ PlayerSettings:
   webGLThreadsSupport: 0
   scriptingDefineSymbols:
     1: ODIN_INSPECTOR;ODIN_INSPECTOR_3
+    13: ODIN_INSPECTOR;ODIN_INSPECTOR_3
+    14: ODIN_INSPECTOR;ODIN_INSPECTOR_3
   platformArchitecture: {}
   scriptingBackend: {}
   il2cppCompilerConfiguration: {}
   managedStrippingLevel: {}
   incrementalIl2cppBuild: {}
   allowUnsafeCode: 0
-  additionalIl2CppArgs: --additional-cpp="C:/Users/tgame/Game Work/Ludum Dare/LD49/LD49/Assets/../Temp/fmod_register_static_plugins.cpp"
-    --additional-cpp="C:/Users/tgame/Game Work/Ludum Dare/LD49/LD49/Assets/Plugins/FMOD/src/Runtime/fmod_static_plugin_support.h"
+  additionalIl2CppArgs: --additional-cpp="C:/Users/tgame/Game Work/Ludum Dare/LD49/Sky
+    Burns Red/Assets/../Temp/fmod_register_static_plugins.cpp" --additional-cpp="C:/Users/tgame/Game
+    Work/Ludum Dare/LD49/Sky Burns Red/Assets/Plugins/FMOD/src/Runtime/fmod_static_plugin_support.h"
   scriptingRuntimeVersion: 1
   apiCompatibilityLevelPerPlatform: {}
   m_RenderingPath: 1

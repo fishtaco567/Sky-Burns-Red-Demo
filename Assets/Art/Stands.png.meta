@@ -15,6 +15,10 @@ TextureImporter:
     21300020: Stands_10
     21300022: Stands_11
     21300024: Stands_12
+    21300026: Stands_13
+    21300028: Stands_14
+    21300030: Stands_15
+    21300032: Stands_16
   externalObjects: {}
   serializedVersion: 9
   mipmaps:
@@ -345,13 +349,93 @@ TextureImporter:
         width: 28
         height: 28
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
       spriteID: b568eccc58fd31740879b6b7d2dfe330
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Stands_13
+      rect:
+        serializedVersion: 2
+        x: 95
+        y: 48
+        width: 7
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c565012ebb28b8443bba6235a1303c04
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Stands_14
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 48
+        width: 7
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 495c036b1c7ace74b97cf59336efaf7d
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Stands_15
+      rect:
+        serializedVersion: 2
+        x: 111
+        y: 48
+        width: 7
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 130ec1086a1885e4bb30b12f132bd2b6
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Stands_16
+      rect:
+        serializedVersion: 2
+        x: 119
+        y: 48
+        width: 7
+        height: 32
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 95ff5afd538a4e64e8e21f136e4a7412
       vertices: []
       indices: 
       edges: []

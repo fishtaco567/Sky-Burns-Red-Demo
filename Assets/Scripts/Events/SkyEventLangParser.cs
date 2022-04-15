@@ -96,7 +96,7 @@ public class SkyEventLangParser {
                         //Check for variable assignment
                         if(line.Contains("=")) {
                             Log("Adding variable expression: " + line);
-                            return new VariableExpression(line);
+                            return new SEVarExpr(line);
                         }
                         break;
                 }

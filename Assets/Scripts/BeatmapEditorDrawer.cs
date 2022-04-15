@@ -236,18 +236,18 @@ public class BeatmapEditorDrawer : Singleton<BeatmapEditorDrawer> {
             if(i % currentBeatmap.sixteenthsInAMeasure == 0) {
                 var newBar = ObjectPool.Instance.GetObject(measureLine);
                 newBar.transform.SetParent(baseObject.transform);
-                newBar.transform.localPosition = new Vector3(0, -i * barOffset, 0);
+                newBar.transform.localPosition = new Vector3(0, -i * barOffset, 1);
                 newBar.GetComponentInChildren<TMPro.TMP_Text>().text = (i / currentBeatmap.sixteenthsInAMeasure + 1).ToString();
                 bars.Add(new EditorBeatObject(i, newBar));
             } else if(i % currentBeatmap.sixteenthsInABeat == 0) {
                 var newBar = ObjectPool.Instance.GetObject(beatLine);
                 newBar.transform.SetParent(baseObject.transform);
-                newBar.transform.localPosition = new Vector3(0, -i * barOffset, 0);
+                newBar.transform.localPosition = new Vector3(0, -i * barOffset, 1);
                 bars.Add(new EditorBeatObject(i, newBar));
             } else {
                 var newBar = ObjectPool.Instance.GetObject(sixteenthLine);
                 newBar.transform.SetParent(baseObject.transform);
-                newBar.transform.localPosition = new Vector3(0, -i * barOffset, 0);
+                newBar.transform.localPosition = new Vector3(0, -i * barOffset, 1);
                 bars.Add(new EditorBeatObject(i, newBar));
             }
 
@@ -319,7 +319,7 @@ public class BeatmapEditorDrawer : Singleton<BeatmapEditorDrawer> {
 
         var holdEndObj = ObjectPool.Instance.GetObject(holdHead);
         holdEndObj.transform.SetParent(baseObject.transform);
-        holdEndObj.transform.localPosition = basePos + new Vector3(0, offset - 0.5f, 1);
+        holdEndObj.transform.localPosition = basePos + new Vector3(0, offset + holdOffset * 2.5f - holdEndOffset, 1);
         beatObjects.Add(new EditorBeatObject(i, holdEndObj));
     }
 

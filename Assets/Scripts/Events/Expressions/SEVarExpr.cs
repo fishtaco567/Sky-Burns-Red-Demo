@@ -1,8 +1,8 @@
-﻿public class VariableExpression : SkyEventExpression {
+﻿public class SEVarExpr : SkyEventExpression {
 
     private string arg;
 
-    public VariableExpression(string arg) {
+    public SEVarExpr(string arg) {
         this.arg = arg;
     }
 

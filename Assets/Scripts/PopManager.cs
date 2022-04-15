@@ -35,6 +35,9 @@ public class PopManager : Singleton<PopManager> {
     protected Transform popAnchorRight;
 
     [SerializeField]
+    protected Transform scoreAnchor;
+
+    [SerializeField]
     protected float popSpread;
 
     [SerializeField]
@@ -46,7 +49,7 @@ public class PopManager : Singleton<PopManager> {
         var anchor = left ? popAnchorLeft : popAnchorRight;
         var thing = large ? largePerf : smallPerf;
         var inst = ObjectPool.Instance.GetObject(thing);
-        inst.transform.position = anchor.position + new Vector3(Random.Range(-popSpread, popSpread), Random.Range(-popSpread, popSpread), 0);
+        inst.transform.position = anchor.position + new Vector3(Random.Range(-popSpread, popSpread), Random.Range(-popSpread, popSpread), -4);
         var comp = inst.GetComponent<PopSim>();
         comp.velocity = new Vector3((left ? -1 : 1) * Random.Range(minVel.x, maxVel.x), Random.Range(minVel.y, maxVel.y), 0);
     }
@@ -54,7 +57,7 @@ public class PopManager : Singleton<PopManager> {
         var anchor = left ? popAnchorLeft : popAnchorRight;
         var thing = large ? largeGood : smallGood;
         var inst = ObjectPool.Instance.GetObject(thing);
-        inst.transform.position = anchor.position + new Vector3(Random.Range(-popSpread, popSpread), Random.Range(-popSpread, popSpread), 0);
+        inst.transform.position = anchor.position + new Vector3(Random.Range(-popSpread, popSpread), Random.Range(-popSpread, popSpread), -4);
         var comp = inst.GetComponent<PopSim>();
         comp.velocity = new Vector3((left ? -1 : 1) * Random.Range(minVel.x, maxVel.x), Random.Range(minVel.y, maxVel.y), 0);
     }
@@ -62,7 +65,7 @@ public class PopManager : Singleton<PopManager> {
         var anchor = left ? popAnchorLeft : popAnchorRight;
         var thing = large ? largeOk : smallOk;
         var inst = ObjectPool.Instance.GetObject(thing);
-        inst.transform.position = anchor.position + new Vector3(Random.Range(-popSpread, popSpread), Random.Range(-popSpread, popSpread), 0);
+        inst.transform.position = anchor.position + new Vector3(Random.Range(-popSpread, popSpread), Random.Range(-popSpread, popSpread), -4);
         var comp = inst.GetComponent<PopSim>();
         comp.velocity = new Vector3((left ? -1 : 1) * Random.Range(minVel.x, maxVel.x), Random.Range(minVel.y, maxVel.y), 0);
     }
@@ -70,7 +73,7 @@ public class PopManager : Singleton<PopManager> {
         var anchor = left ? popAnchorLeft : popAnchorRight;
         var thing = large ? largeNope : smallNope;
         var inst = ObjectPool.Instance.GetObject(thing);
-        inst.transform.position = anchor.position + new Vector3(Random.Range(-popSpread, popSpread), Random.Range(-popSpread, popSpread), 0);
+        inst.transform.position = anchor.position + new Vector3(Random.Range(-popSpread, popSpread), Random.Range(-popSpread, popSpread), -4);
         var comp = inst.GetComponent<PopSim>();
         comp.velocity = new Vector3((left ? -1 : 1) * Random.Range(minVel.x, maxVel.x), Random.Range(minVel.y, maxVel.y), 0);
     }
@@ -102,6 +105,26 @@ public class PopManager : Singleton<PopManager> {
         if(pops.TryGetValue(type, out var prefab)) {
             var inst = ObjectPool.Instance.GetObject(prefab);
             var anchor = side ? popAnchorRight : popAnchorLeft;
+            inst.transform.position = anchor.position;
+            var comp = inst.GetComponent<PopSim>();
+            comp.velocity = new Vector3(xVel, yVel, 0);
+        }
+    }
+
+    public void DoPopStandSide(string type, float xVel, float yVel, bool side) {
+        if(pops.TryGetValue(type, out var prefab)) {
+            var inst = ObjectPool.Instance.GetObject(prefab);
+            var anchor = side ? SimulatorManager.Instance.currentSim.rightPopAnchor : SimulatorManager.Instance.currentSim.leftPopAnchor;
+            inst.transform.position = anchor.position;
+            var comp = inst.GetComponent<PopSim>();
+            comp.velocity = new Vector3(xVel, yVel, 0);
+        }
+    }
+
+    public void DoScorePop(string type, float xVel, float yVel) {
+        if(pops.TryGetValue(type, out var prefab)) {
+            var inst = ObjectPool.Instance.GetObject(prefab);
+            var anchor = scoreAnchor;
             inst.transform.position = anchor.position;
             var comp = inst.GetComponent<PopSim>();
             comp.velocity = new Vector3(xVel, yVel, 0);

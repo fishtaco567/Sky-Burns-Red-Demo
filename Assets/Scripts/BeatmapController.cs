@@ -40,6 +40,8 @@ public class BeatmapController : Singleton<BeatmapController> {
     [SerializeField]
     protected float maxPostHoldEndTime;
 
+    [SerializeField]
+    protected float p10Time;
 
     [Range(-0.2f, 0.2f)]
     [SerializeField]
@@ -53,7 +55,7 @@ public class BeatmapController : Singleton<BeatmapController> {
                 song.getTimelinePosition(out int pos);
                 return pos / 1000f + timeOffset;
             } else if(inPrestart) {
-                return -2.564f + (Time.time - prestartStartedAt);
+                return -3.564f + (Time.time - prestartStartedAt);
             } else {
                 return -5;
             }
@@ -93,6 +95,8 @@ public class BeatmapController : Singleton<BeatmapController> {
     public int currentStreak;
     public int maxStreak;
 
+    public ScoreHolder score;
+
     public bool hitLeft;
     public bool hitRight;
 
@@ -103,8 +107,10 @@ public class BeatmapController : Singleton<BeatmapController> {
     [FMODUnity.EventRef]
     public string pup;
 
-    public List<(bool, int)> heldNotes;
+    [System.NonSerialized]
+    public List<(bool, int, float)> heldNotes;
 
+    [System.NonSerialized]
     public int sbrcount = 0;
 
     protected int currentBeat = 0;
@@ -115,8 +121,31 @@ public class BeatmapController : Singleton<BeatmapController> {
 
     protected int holdForceHandle;
 
+    [System.NonSerialized]
     public bool inPrestart;
     private float prestartStartedAt;
+
+    [SerializeField]
+    protected GameObject band;
+    [SerializeField]
+    protected CameraController cameraController;
+
+    [SerializeField]
+    [FMODUnity.EventRef]
+    protected string playEvent;
+
+    public TMPro.TMP_Text scoreText;
+    public TMPro.TMP_Text multiText;
+
+    protected void Awake() {
+        Newtonsoft.Json.Utilities.AotHelper.EnsureList<Beatmap>();
+        Newtonsoft.Json.Utilities.AotHelper.EnsureDictionary<int, string[]>();
+        Newtonsoft.Json.Utilities.AotHelper.EnsureDictionary<int, float>();
+        Newtonsoft.Json.Utilities.AotHelper.EnsureDictionary<int, Vector2Int>();
+        Newtonsoft.Json.Utilities.AotHelper.EnsureList<string>();
+        Newtonsoft.Json.Utilities.AotHelper.EnsureList<Beatmap.Beat>();
+        Newtonsoft.Json.Utilities.AotHelper.EnsureType<Beatmap.Beat>();
+    }
 
     protected void Start() {
         rewiredPlayer = ReInput.players.GetPlayer(0);
@@ -137,15 +166,18 @@ public class BeatmapController : Singleton<BeatmapController> {
             }
         }
 
+        score.Multiplier = currentStreak + 1;
+
         song.getPlaybackState(out var state);
         if(lastBeat >= currentBeatmap.map.Length) {
-            GameManager.Instance.ResultsScreen(numPerfect, numGood, numOk, numMissed, numHit / (float)numNotes, maxAngle);
+            GameManager.Instance.ResultsScreen(numPerfect, numGood, numOk, numMissed, numHit / (float)numNotes, score.Score, maxStreak + 1);
             FMODUnity.RuntimeManager.PlayOneShot(chant);
             SimulatorManager.Instance.currentSim.Stop();
             EndSong(true);
             foreach(var program in succeedEvents) {
                 SkyEventManager.Instance.ExecuteProgram(program);
             }
+            cameraController.MoveTo(new Vector2(cameraController.transform.position.x, 7f), 1.5f);
         }
 
         maxAngle = Mathf.Max(maxAngle, Mathf.Abs(SimulatorManager.Instance.currentSim.GetAngle()));
@@ -191,7 +223,10 @@ public class BeatmapController : Singleton<BeatmapController> {
         var leftHeld = false;
         var rightHeld = false;
         var curHoldForce = 0.0f;
-        foreach(var held in heldNotes) {
+        for(int i = heldNotes.Count - 1; i >= 0; i--) {
+            var held = heldNotes[i];
+
+            held.Item3 += Time.deltaTime;
             if(held.Item1) {
                 curHoldForce += holdForce;
                 rightHeld = true;
@@ -199,6 +234,13 @@ public class BeatmapController : Singleton<BeatmapController> {
                 curHoldForce -= holdForce;
                 leftHeld = true;
             }
+
+            if(held.Item3 >= p10Time) {
+                score.Hit10();
+                held.Item3 = 0;
+            }
+
+            heldNotes[i] = held;
         }
         SimulatorManager.Instance.currentSim.UpdateForce(holdForceHandle, curHoldForce);
 
@@ -247,7 +289,7 @@ public class BeatmapController : Singleton<BeatmapController> {
             var holdEndDif = currentSongTime - holdEndsAt;
 
             var reasonableHold = false;
-            if(holdEndDif > maxPostHoldEndTime || holdEndDif < -maxPrehitTime) {
+            if(holdEndDif < maxPostHoldEndTime && holdEndDif > -maxPreHoldEndTime) {
                 reasonableHold = true;
             }
 
@@ -255,12 +297,22 @@ public class BeatmapController : Singleton<BeatmapController> {
                 heldKilled[heldNotes[i].Item2] = !reasonableHold; 
                 heldNotes.RemoveAt(i);
 
-                PopManager.Instance.DoPerfPop(false, false);
+                if(reasonableHold) {
+                    PopManager.Instance.DoPerfPop(false, false);
+                    score.HitNote1000();
+                }
             } else if(!heldNotes[i].Item1 && !leftHeld) {
                 heldKilled[heldNotes[i].Item2] = !reasonableHold;
                 heldNotes.RemoveAt(i);
 
-                PopManager.Instance.DoPerfPop(true, false);
+                if(reasonableHold) {
+                    PopManager.Instance.DoPerfPop(true, false);
+                    score.HitNote1000();
+                }
+            }
+
+            if(holdEndDif > maxPostHoldEndTime) {
+                heldNotes.RemoveAt(i);
             }
         }
 
@@ -277,21 +329,21 @@ public class BeatmapController : Singleton<BeatmapController> {
                     PopManager.Instance.DoPerfPop(left, false);
                     numPerfect += 1;
                     crowd.OnPerfectHit();
+                    score.HitNote300();
                 } else if(GetPostHitTime() < goodPosthitTime) {
                     PopManager.Instance.DoGoodPop(left, false);
                     numGood += 1;
+                    score.HitNote200();
                 } else {
                     PopManager.Instance.DoOkPop(left, false);
                     crowd.OnOkHit();
                     numOk += 1;
+                    score.HitNote100();
                 }
 
                 if(currentBeatmap.map[lastBeat].beatsHeld != 0) {
                     var side = right;
-                    if(currentBeatmap.map[lastBeat].beat == BeatType.Left) {
-                        side = left;
-                    }
-                    heldNotes.Add((side, lastBeat));
+                    heldNotes.Add((side, lastBeat, 0));
                 }
 
                 if(currentBeatmap.map[lastBeat].leftPowerup && left) {
@@ -326,26 +378,27 @@ public class BeatmapController : Singleton<BeatmapController> {
                 inputConsumed = true;
                 numNotes += 1;
                 numHit += 1;
+                currentStreak += 1;
 
                 if(GetPreHitTime() < perfectPrehitTime) {
                     PopManager.Instance.DoPerfPop(left, false);
                     numPerfect += 1;
                     crowd.OnPerfectHit();
+                    score.HitNote300();
                 } else if(GetPreHitTime() < goodPrehitTime) {
                     PopManager.Instance.DoGoodPop(left, false);
                     numGood += 1;
+                    score.HitNote200();
                 } else {
                     PopManager.Instance.DoOkPop(left, false);
                     crowd.OnOkHit();
                     numOk += 1;
+                    score.HitNote100();
                 }
 
                 if(currentBeatmap.map[nextBeat].beatsHeld != 0) {
                     var side = right;
-                    if(currentBeatmap.map[nextBeat].beat == BeatType.Left) {
-                        side = left;
-                    }
-                    heldNotes.Add((side, nextBeat));
+                    heldNotes.Add((side, nextBeat, 0));
                 }
 
                 if(currentBeatmap.map[nextBeat].leftPowerup && left) {
@@ -397,12 +450,14 @@ public class BeatmapController : Singleton<BeatmapController> {
         this.leftPup = new bool[beatmap.map.Length];
         this.rightPup = new bool[beatmap.map.Length];
         this.heldKilled = new bool[beatmap.map.Length];
-        this.heldNotes = new List<(bool, int)>();
+        this.heldNotes = new List<(bool, int, float)>();
         BeatmapDrawer.Instance.ResetBeatsDrawn();
         song = FMODUnity.RuntimeManager.CreateInstance(currentBeatmap.songEvent);
         song.start();
         song.setPaused(true);
         crowd.StartNewSong();
+
+        score = new ScoreHolder();
 
         numHit = 0;
         numNotes = 0;
@@ -452,6 +507,9 @@ public class BeatmapController : Singleton<BeatmapController> {
         prestartStartedAt = Time.time;
         inPrestart = true;
         StartCoroutine(StartSongCoroutine());
+        StartCoroutine(StartSongCameraCoroutine());
+
+        FMODUnity.RuntimeManager.PlayOneShot(playEvent);
     }
 
     private System.Collections.IEnumerator StartSongCoroutine() {
@@ -468,6 +526,31 @@ public class BeatmapController : Singleton<BeatmapController> {
             }
         }
         inPrestart = false;
+    }
+
+    private System.Collections.IEnumerator StartSongCameraCoroutine() {
+        float downTime = 1f;
+        float stayTime = 1f;
+        float upTime = 1.5f;
+        float cameraMoveAmount = 7f;
+
+        float time = 0;
+        cameraController.MoveTo(new Vector2(0, -cameraMoveAmount), downTime);
+        while(time < downTime) {
+            time += Time.deltaTime;
+            band.transform.position = Vector3.Lerp(new Vector3(0, -20f, band.transform.position.z), new Vector3(0, -16f, band.transform.position.z), Easings.EaseInOutSine(time / downTime));
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(stayTime);
+
+        time = 0;
+        cameraController.MoveTo(new Vector2(0, 0), upTime);
+        while(time < upTime) {
+            time += Time.deltaTime;
+            band.transform.position = Vector3.Lerp(new Vector3(0, -16f, band.transform.position.z), new Vector3(0, -26f, band.transform.position.z), Easings.EaseInOutSine(time / upTime));
+            yield return null;
+        }
     }
 
     public void PauseSong() {
